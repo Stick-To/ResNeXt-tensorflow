@@ -17,12 +17,14 @@ else:
 
 config = {
     'residual_block_list': [3, 4, 6, 3],
-    'init_conv_filters': 64,
+    'init_conv_filters': 16,
     'init_conv_kernel_size': 3,
     'init_conv_strides': 1,
     'init_pooling_pool_size': 3,
     'init_pooling_strides': 2,
-    'cardinality': 32
+    'cardinality': 4,
+    'is_SENet': True,
+    'reduction': 16
 }
 
 mean = np.array([123.68, 116.779, 103.979]).reshape((1, 1, 1, 3))

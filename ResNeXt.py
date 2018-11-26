@@ -21,6 +21,10 @@ class ResNeXt:
         self.block_list = config['residual_block_list']
         self.filters_list = [config['init_conv_filters']*(2**i) for i in range(len(config['residual_block_list']))]
         self.cardinality = config['cardinality']
+        self.is_SENet = config['is_SENet']
+        if config['is_SENet']:
+            self.reduction = config['reduction']
+
         self.global_step = tf.train.get_or_create_global_step()
         self.is_training = True
 
@@ -201,7 +205,33 @@ class ResNeXt:
                 conv = self._conv_bn_activation(conv, filters*4, 1, 1, activation)
             with tf.variable_scope('identity_branch'):
                 shutcut = self._conv_bn_activation(bottom, filters*4, 3, strides,activation)
-            return conv + shutcut
+            if self.is_SENet:
+                return self.squeeze_and_excitation(conv + shutcut)
+            else:
+                return conv + shutcut
+
+    # squeeze-and-excitation block
+    def squeeze_and_excitation(self, bottom):
+        axes = [2, 3] if self.data_format == 'channels_first' else [1, 2]
+        channels = bottom.get_shape()[1] if self.data_format == 'channels_first' else bottom.get_shape()[3]
+        average_pool = tf.reduce_mean(
+            input_tensor=bottom,
+            axis=axes,
+            keepdims=False,
+        )
+        fc_layer1 = tf.layers.dense(
+            inputs=average_pool,
+            units=int(channels // self.reduction),
+            activation=tf.nn.relu,
+        )
+        fc_layer2 = tf.layers.dense(
+            inputs=fc_layer1,
+            units=channels,
+            activation=tf.nn.sigmoid,
+        )
+        weight = tf.reshape(fc_layer2, [-1, 1, 1, channels])
+        scaled = weight * bottom
+        return scaled
 
     def _max_pooling(self, bottom, pool_size, strides, name):
         return tf.layers.max_pooling2d(
