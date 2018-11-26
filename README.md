@@ -1,4 +1,5 @@
 # ResNeXt-TF
+have 'SENet' mode
 
 # ResNeXt
 https://arxiv.org/abs/1611.05431
