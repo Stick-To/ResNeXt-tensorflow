@@ -206,7 +206,7 @@ class ResNeXt:
             with tf.variable_scope('identity_branch'):
                 shutcut = self._conv_bn_activation(bottom, filters*4, 3, strides,activation)
             if self.is_SENet:
-                return self.squeeze_and_excitation(conv + shutcut)
+                return self.squeeze_and_excitation(conv) + shutcut
             else:
                 return conv + shutcut
 
