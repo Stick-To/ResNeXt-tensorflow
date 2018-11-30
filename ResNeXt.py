@@ -19,7 +19,7 @@ class ResNeXt:
         assert config['init_conv_filters'] % config['cardinality'] == 0
         self.config = config
         self.block_list = config['residual_block_list']
-        self.filters_list = [config['init_conv_filters']*(2**i) for i in range(len(config['residual_block_list']))]
+        self.filters_list = [config['init_conv_filters']*(2**i) for i in range(1, len(config['residual_block_list'])+1)]
         self.cardinality = config['cardinality']
         self.is_SENet = config['is_SENet']
         if config['is_SENet']:
@@ -202,9 +202,9 @@ class ResNeXt:
             with tf.variable_scope('conv_branch'):
                 conv = self._conv_bn_activation(bottom, filters, 1, 1)
                 conv = self._group_conv(conv, filters, 3, strides)
-                conv = self._conv_bn_activation(conv, filters*4, 1, 1, activation)
+                conv = self._conv_bn_activation(conv, filters*2, 1, 1, activation)
             with tf.variable_scope('identity_branch'):
-                shutcut = self._conv_bn_activation(bottom, filters*4, 3, strides,activation)
+                shutcut = self._conv_bn_activation(bottom, filters*2, 1, strides, activation)
             if self.is_SENet:
                 return self.squeeze_and_excitation(conv) + shutcut
             else:
