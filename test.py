@@ -23,7 +23,7 @@ config = {
     'init_pooling_pool_size': 3,
     'init_pooling_strides': 2,
     'cardinality': 4,
-    'is_SENet': True,
+    'is_SENet': False,
     'reduction': 16
 }
 

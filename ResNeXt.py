@@ -190,8 +190,10 @@ class ResNeXt:
     def _group_conv(self, bottom, filters, kernel_size, strides, activation=tf.nn.relu):
         total_conv = []
         filters_per_path = filters // self.cardinality
+        axis = 3 if self.data_format == 'channels_last' else 1
         for i in range(self.cardinality):
-            conv = self._conv_bn_activation(bottom, filters_per_path, kernel_size, strides, activation)
+            split_bottom = tf.gather(bottom, tf.range(i*self.cardinality, (i+1)*self.cardinality), axis=axis)
+            conv = self._conv_bn_activation(split_bottom, filters_per_path, kernel_size, strides, activation)
             total_conv.append(conv)
         axes = 3 if self.data_format == 'channels_last' else 1
         total_conv = tf.concat(total_conv, axis=axes)
